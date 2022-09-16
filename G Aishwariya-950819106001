@@ -1,0 +1,59 @@
+#include<Servo.h>
+Servo s;
+void setup()
+{
+  s.attach(7);
+  Serial.begin(9600);
+  pinMode(13,OUTPUT);
+  pinMode(12,OUTPUT);
+  pinMode(2,OUTPUT);
+  pinMode(3,INPUT);
+}
+void loop()
+{
+  double a=analogRead(A0);
+  double t=((((a/1024)*5)-0.5)*100);
+  Serial.print("Temperature value:");
+  Serial.println(t);
+  float duration=pulseIn(2,HIGH);
+  float distance=(duration+.0343)/2;
+  Serial.print("Distance value:");
+  Serial.println(distance);
+  if(t>23)
+  {
+    digitalWrite(13,HIGH);
+    tone(12,20);
+  }
+  else
+  {
+    digitalWrite(13,LOW);
+  }
+  if(distance>=0.01)
+  {
+	s.write(720);
+    delay(1000);
+    s.write(720);
+    if(distance<0.01)
+    {
+     s.write(-720);
+   	 delay(-1000);
+     s.write(-720);
+    }
+  }
+  else
+  {
+    s.write(-720);
+    delay(-1000);
+    s.write(-720);
+  }
+  if(t>23)
+  {
+    digitalWrite(13,HIGH);
+    tone(12,20);
+  }
+  else
+  {
+    digitalWrite(13,LOW);
+  }
+ 
+}
