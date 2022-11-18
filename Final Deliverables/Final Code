@@ -1,0 +1,96 @@
+import time
+import sys
+import ibmiotf.application
+import ibmiotf.device
+import random
+
+
+#Provide your IBM Watson Device Credentials
+organization = "3f3tah"
+deviceType = "sensor"
+deviceId = "123456"
+authMethod = "token"
+authToken = "1234567890"
+
+# Initialize GPIO
+
+
+def myCommandCallback(cmd):
+    print("Command received: %s" % cmd.data['command'])
+    status=cmd.data['command']
+    if status=="binfull":
+        print ("-----EMPTY THE BIN IMMEDIATELY----")
+    
+   
+    #print(cmd)
+    
+        
+
+
+try:
+	deviceOptions = {"org": organization, "type": deviceType, "id": deviceId, "auth-method": authMethod, "auth-token": authToken}
+	deviceCli = ibmiotf.device.Client(deviceOptions)
+	#..............................................
+	
+except Exception as e:
+	print("Caught exception connecting device: %s" % str(e))
+	sys.exit()
+
+# Connect and send a datapoint "hello" with value "world" into the cloud as an event of type "greeting" 10 times
+deviceCli.connect()
+
+while True:
+        #Get Data from Code
+        
+        binlevel=random.randint(10,100)
+        locationId=random.randint(1,5)
+        district="Tirunelveli"
+        state="Tamilnadu"
+        country="India"
+        if locationId == 1:
+           latitude=8.7060581
+           longitude=77.7633162
+           village="VM Chathiram"
+        elif locationId == 2:
+           latitude=8.7066676
+           longitude=77.732578
+           village="Perumalpuram"
+        elif locationId == 3:
+           latitude=8.7199159
+           longitude=77.725674
+           village="Palayamkottai"
+        elif locationId == 4:
+           latitude=8.7282671
+           longitude=77.7180244
+           village="Vannarpettai"
+        elif locationId == 5:
+           latitude=8.7289086
+           longitude=77.6745726
+           village="Nellai Town"
+        else:
+            print("No location Found!!")
+            
+        data = { 'latitude' : latitude, 'longitude': longitude,'binlevel': binlevel,'village':village,'district':district,'state':state,'country':country }
+        #print data
+        def myOnPublishCallback():
+            print ("Published Latitude = %s " % latitude, "Longitude = %s %%" % longitude, "Binlevel = %s" % binlevel,"village = %s " % village,"district= %s" % district,"state = %s" % state,"country = %s " % country, "to IBM Watson\n")
+        if binlevel >= 90:
+               data={'Latitude':latitude, 'Longitude':longitude, 'Binlevel':binlevel, 'Village':village, 'District':district, 'State':state,'Country':country}
+               print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!BIN IS FULL !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n")
+               print("----------------------------------EMPTY THE BIN IMMEDIATELY-----------------------------------------------\n")
+               deviceCli.commandCallback = myCommandCallback
+               time.sleep(5)
+        else:
+            print("BIN IS IN NORMAL LEVEL\n")
+            time.sleep(5)
+               
+   
+        success = deviceCli.publishEvent("IoTSensor", "json", data, qos=0, on_publish=myOnPublishCallback)
+        if not success:
+            print("Not connected to IoTF")
+        time.sleep(1)
+        
+
+
+# Disconnect the device and application from the cloud
+deviceCli.disconnect()
